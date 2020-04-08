@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Task Manager</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="css/styles.css" rel="stylesheet"/>
+
+</head>
+
+<body class="edited_body">
+
+<div class="wrapper">
+
+    <!--    Left Side-->
+    <div class="mx-auto" id="sidebar" style="padding-left: 8%; padding-top: 7%">
+        <div class="container">
+            <div>
+                <h1>Hi Samantha</h1>
+                <p>{{ welcome }}</p>
+            </div>
+
+            <div>
+                <form action="/" method="post">
+                    <div class="row" style="width: 80%">
+                        <div class="col form-group">
+                            <input class="form-control" placeholder="Search" type="text">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div style="margin-top: 70px;">
+                <h4>Task Boards (13)</h4>
+            </div>
+
+            <div class="row justify-content-around" style="width: 80%">
+                <div class="col-3 mt-4">
+                    <div class="taskboard">CA</div>
+                    <p class="text-center mt-3 taskboard-text">Cyber Punk</p>
+                </div>
+                <div class="col-3 mt-4">
+                    <div class="taskboard">CA</div>
+                    <p class="text-center mt-3 taskboard-text">Cyber Punk</p>
+                </div>
+                <div class="col-3 mt-4">
+                    <div class="taskboard">CA</div>
+                    <p class="text-center mt-3 taskboard-text">Cyber Punk</p>
+                </div>
+                <div class="col-3 mt-4">
+                    <div class="taskboard">CA</div>
+                    <p class="text-center mt-3 taskboard-text">Cyber Punk</p>
+                </div>
+
+
+            </div>
+
+            <div class="mt-5">
+                <a class="btn login-button-dashboard" href="{{ url }}">{{ login_status }}</a>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+
+<!--    Right Side-->
+<div class="shadow p-5" id="content">
+    <div>
+        <h2>Project Title</h2>
+        <p class="lead">Project description and some more</p>
+    </div>
+
+    <div class="mt-5">
+        <h5>Today</h5>
+        <hr>
+
+    </div>
+
+</div>
+
+</div>
+
+<script src="js/jquery-3.4.1.min.js" type="text/javascript"></script>
+<script src="js/popper.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js" type="text/javascript"></script>
+
+</body>
+</html>
