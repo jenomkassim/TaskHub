@@ -5,6 +5,9 @@ from task import Task
 
 
 class TaskBoard(ndb.Model):
-    author = ndb.StructuredProperty(MyUser)
-    tasks = ndb.StructuredProperty(Task)
+    creator = ndb.KeyProperty(kind=MyUser)
+    creator_name = ndb.StringProperty()
+    creator_id = ndb.StringProperty()
+    name = ndb.StringProperty()
+    tasks = ndb.StructuredProperty(Task, repeated=True)
     date = ndb.DateTimeProperty(auto_now_add=True)

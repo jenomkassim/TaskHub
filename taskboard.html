@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Task Manager</title>
+    <title>TaskBoard - Task Manager</title>
     <link href="css/bootstrap.min.css" rel="stylesheet"/>
     <link href="css/styles.css" rel="stylesheet"/>
 
@@ -16,8 +16,8 @@
     <div class="mx-auto" id="sidebar" style="padding-left: 8%; padding-top: 7%">
         <div class="container">
             <div>
-                <h1>Hi {{ user_email }}</h1>
-                <p>{{ welcome }}</p>
+                <h1>{{ taskboard_info.name }}</h1>
+                <p style="color: #34495e;">Created by: {{ taskboard_info.creator_name }}</p>
             </div>
 
             <div>
@@ -34,9 +34,9 @@
             <div style="margin-top: 70px;">
                 <div class="row" style="width: 80%">
                     <div class="col">
-                        <h4>Recent Projects ({{ all_taskboards_count}})</h4>
+                        <h6>Invite Users To Collaborate With You</h6>
                     </div>
-                    <div class="col">
+                    <div class="col-1">
                         <button class="btn btn-danger float-right rounded-circle font-weight-bold"
                                 data-target="#createTaskBoard" data-toggle="modal"
                                 style=""> +
@@ -46,13 +46,11 @@
             </div>
 
             <div class="row " style="width: 80%">
-                {% for taskboard in all_taskboards %}
+                {% for taskboard in taskboards %}
 
                 <div class="col-3 mt-4">
-                    <a href="/taskboard?id={{ taskboard.key.urlsafe() }}" style="text-decoration: none;">
-                        <div class="taskboard">{{ taskboard.name[0]}}</div>
-                        <p class="text-center mt-3 taskboard-text">{{ taskboard.name }}</p>
-                    </a>
+                    <div class="taskboard">CA</div>
+                    <p class="text-center mt-3 taskboard-text">{{ taskboard.taskboard.name }}</p>
                 </div>
 
                 {% endfor %}
@@ -73,25 +71,13 @@
 <!--    Right Side-->
 <div class="shadow p-5" id="content">
     <div>
-        <h2>All TaskBoards</h2>
-        <p class="lead">You'll find the list of all of your taskboards here</p>
+        <h2>Tasks</h2>
+        <hr>
     </div>
 
     <div class="mt-5">
-        <hr>
+        <h5>Today</h5>
 
-        <div class="row " style="width: 100%">
-            {% for taskboard in all_taskboards %}
-
-            <div class="col-3 mt-4">
-                <div class="taskboard-alt">{{ taskboard.name[0]}}</div>
-                <p class="text-center mt-3 taskboard-text-alt">{{ taskboard.name }}</p>
-            </div>
-
-            {% endfor %}
-
-
-        </div>
 
     </div>
 
@@ -127,6 +113,14 @@
                                            type="text">
                                 </div>
                             </div>
+                            <!--                            <div class="row">-->
+                            <!--                                <div class="col form-group">-->
+                            <!--                                    <label for="taskboard_desc">Taskboard Description</label>-->
+                            <!--                                    <textarea class="form-control" maxlength="100" name="taskboard_desc"-->
+                            <!--                                              placeholder="Type a description here (100 char max)" -->
+                            <!--                                              rows="2" id="taskboard_desc"></textarea>-->
+                            <!--                                </div>-->
+                            <!--                            </div>-->
                             <div class="row">
                                 <div class="col form-group">
                                     <label></label>

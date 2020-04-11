@@ -22,24 +22,17 @@ DEFAULT_TASKBOARD_NAME = 'default_taskboard'
 # will be consistent. However, the write rate should be limited to
 # ~1/second.
 
-def myuser_parent_key(taskboard_name=DEFAULT_TASKBOARD_NAME):
+def taskboard_key(taskboard_name=DEFAULT_TASKBOARD_NAME):
     """Constructs a Datastore key for a Guestbook entity.
 
     We use guestbook_name as the key.
     """
-    return ndb.Key('MyUser', taskboard_name)
+    return ndb.Key('Taskboard', taskboard_name)
 
 
-class Dashboard(webapp2.RequestHandler):
+class TaskBoardPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
-
-        # taskboard_name = self.request.get('taskboard_name',
-        #                                   DEFAULT_TASKBOARD_NAME)
-        # taskboard_query = TaskBoard.query(
-        #     ancestor=taskboard_key(taskboard_name)).order(-TaskBoard.date)
-        #
-        # taskboards = taskboard_query.fetch()
 
         url = ''
         welcome = ''
@@ -75,6 +68,18 @@ class Dashboard(webapp2.RequestHandler):
             url = users.create_login_url(self.request.uri)
             login_status = 'Login'
 
+        idd = self.request.get('id')
+        decrypted_idd = ndb.Key(urlsafe=idd)
+        taskboard_url_id = decrypted_idd.id()
+
+        taskboard_details = ndb.Key('TaskBoard', taskboard_url_id).get()
+        taskboard_details2 = ndb.Key('TaskBoard', taskboard_url_id)
+
+        taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
+        # self.response.write(TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key))
+
+        query = TaskBoard.query(ancestor=myuser_key)
+
         template_values = {
             'url': url,
             'user': user,
@@ -82,52 +87,14 @@ class Dashboard(webapp2.RequestHandler):
             'login_status': login_status,
             'user_email': user.email(),
             'all_taskboards': all_taskboards,
-            'all_taskboards_count': all_taskboards_count
+            'all_taskboards_count': all_taskboards_count,
+            'taskboard_info': taskboard_info
         }
 
-        template = JINJA_ENVIRONMENT.get_template('dashboard.html')
+        template = JINJA_ENVIRONMENT.get_template('taskboard.html')
         self.response.write(template.render(template_values))
 
     def post(self):
         self.response.headers['Content-Type'] = 'text/html'
 
-        # GET USER KEY
         user = users.get_current_user()
-        myuser_key = ndb.Key('MyUser', user.user_id())
-
-        # GET NEW TASKBOARD NAME
-        taskboard_title = self.request.get('taskboard_name')
-
-        # CREATE NEW TASKBOARD
-        new_taskboard_key = ndb.Key('TaskBoard', taskboard_title, parent=myuser_key)
-        new_taskboard = TaskBoard(key=new_taskboard_key, creator=myuser_key, creator_name=user.email(),
-                                  creator_id=user.user_id(),
-                                  name=taskboard_title)
-
-        # COMMIT NEW TASKBOARD TO DATASTORE
-        new_taskboard.put()
-        self.redirect('/dashboard')
-
-        # taskboard_key = ndb.Key('TaskBoard', taskboard_title, parent=myuser_key)
-        # new_taskboard = taskboard_key
-
-        # if taskboard_title == TaskBoard.get_by_id(taskboard_key.id()):
-        #     self.response.write('Taskboard Exists')
-        # else:
-        #     self.response.write('New Taskboard')
-
-        # self.response.write(TaskBoard.get_by_id(myuser_key.id()))
-        # new_taskboard.put()
-        # self.redirect('/dashboard')
-
-        # self.response.write(new_taskboard.creator)
-        # self.response.write('<br/>')
-        # self.response.write(new_taskboard.name)
-
-        # self.response.write(taskboard_key)
-
-        # if user:
-        #     taskboard.name = taskboard_title
-        #     taskboard.put()
-        #     self.redirect('/dashboard')
-        # self.response.write(taskboard_title)
