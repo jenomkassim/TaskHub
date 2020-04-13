@@ -34,7 +34,7 @@
             <div style="margin-top: 70px;">
                 <div class="row" style="width: 80%">
                     <div class="col">
-                        <h4>Recent Projects ({{ all_taskboards_count}})</h4>
+                        <h4>Recent Projects ()</h4>
                     </div>
                     <div class="col">
                         <button class="btn btn-danger float-right rounded-circle font-weight-bold"
@@ -46,14 +46,16 @@
             </div>
 
             <div class="row " style="width: 80%">
-                {% for taskboard in all_taskboards %}
-
+                {% for i in taskboard_user_keys %}
                 <div class="col-3 mt-4">
-                    <a href="/taskboard?id={{ taskboard.key.urlsafe() }}" style="text-decoration: none;">
-                        <div class="taskboard">{{ taskboard.name[0]}}</div>
-                        <p class="text-center mt-3 taskboard-text">{{ taskboard.name }}</p>
+                    <a href="/taskboard?id={{ TaskBoard.get_by_id(i.id(), parent=i.parent()).key.urlsafe() }}"
+                       style="text-decoration: none;">
+                        <div class="taskboard">{{ TaskBoard.get_by_id(i.id(), parent=i.parent()).name[0] }}</div>
+                        <p class="text-center mt-3 taskboard-text">{{ TaskBoard.get_by_id(i.id(),
+                            parent=i.parent()).name }}</p>
                     </a>
                 </div>
+
 
                 {% endfor %}
 
@@ -79,17 +81,31 @@
 
     <div class="mt-5">
         <hr>
-
+        <h6>My Created Task Boards</h6>
         <div class="row " style="width: 100%">
             {% for taskboard in all_taskboards %}
 
-            <div class="col-3 mt-4">
+            <div class="col-2 mt-4">
                 <div class="taskboard-alt">{{ taskboard.name[0]}}</div>
                 <p class="text-center mt-3 taskboard-text-alt">{{ taskboard.name }}</p>
             </div>
 
             {% endfor %}
 
+        </div>
+
+        <hr>
+        <div class="mt-5"></div>
+        <h6>My Invited Task Boards</h6>
+        <div class="row " style="width: 100%">
+            {% for taskboard in all_taskboards %}
+
+            <div class="col-2 mt-4">
+                <div class="taskboard-alt">{{ taskboard.name[0]}}</div>
+                <p class="text-center mt-3 taskboard-text-alt">{{ taskboard.name }}</p>
+            </div>
+
+            {% endfor %}
 
         </div>
 

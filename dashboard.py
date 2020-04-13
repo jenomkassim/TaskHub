@@ -47,10 +47,7 @@ class Dashboard(webapp2.RequestHandler):
 
         user = users.get_current_user()
 
-        # taskboard_key = ndb.Key('TaskBoard', taskboard_title, parent=myuser_key)
-        # myuser_key = ndb.Key('MyUser', user.user_id())
-        # myuser = myuser_key.get()
-        # self.response.write(myuser_key)
+
 
         if user:
             welcome = 'Welcome back to the workspace, we missed You!'
@@ -67,9 +64,14 @@ class Dashboard(webapp2.RequestHandler):
                                 email=user.email())
                 myuser.put()
 
-            all_taskboards = TaskBoard.query(ancestor=myuser_key).fetch()
-            all_taskboards_count = TaskBoard.query(ancestor=myuser_key).count()
+            taskboard_user_ref = MyUser.get_by_id(myuser_key.id())
+            taskboard_user_keys = taskboard_user_ref.td_key
 
+            # for i in taskboard_user_keys:
+            #     # creator_key = ndb.Key('MyUser', i.td_creator_id)
+            #     j = TaskBoard.get_by_id(i.id(), parent=i.parent())
+            #     self.response.write(j.name)
+            #     self.response.write('<br/>')
 
         else:
             url = users.create_login_url(self.request.uri)
@@ -81,8 +83,11 @@ class Dashboard(webapp2.RequestHandler):
             'welcome': welcome,
             'login_status': login_status,
             'user_email': user.email(),
-            'all_taskboards': all_taskboards,
-            'all_taskboards_count': all_taskboards_count
+            'taskboard_user_keys': taskboard_user_keys,
+            'myuser_key': myuser_key,
+            'TaskBoard': TaskBoard
+            # 'all_taskboards': all_taskboards,
+            # 'all_taskboards_count': all_taskboards_count
         }
 
         template = JINJA_ENVIRONMENT.get_template('dashboard.html')
@@ -99,35 +104,22 @@ class Dashboard(webapp2.RequestHandler):
         taskboard_title = self.request.get('taskboard_name')
 
         # CREATE NEW TASKBOARD
-        new_taskboard_key = ndb.Key('TaskBoard', taskboard_title, parent=myuser_key)
-        new_taskboard = TaskBoard(key=new_taskboard_key, creator=myuser_key, creator_name=user.email(),
-                                  creator_id=user.user_id(),
-                                  name=taskboard_title)
 
-        # COMMIT NEW TASKBOARD TO DATASTORE
+        # Ask Datastore to allocate an ID.
+        new_id = ndb.Model.allocate_ids(size=1, parent=myuser_key)[0]
+
+        # Datastore returns us an integer ID that we can use to create the new taskboard
+        # key
+        new_taskboard_key = ndb.Key('TaskBoard', new_id, parent=myuser_key)
+
+        # Now we can put the message into Datastore
+        new_taskboard = TaskBoard(key=new_taskboard_key, creator=myuser_key, creator_name=user.email(),
+                                  name=taskboard_title, creator_id=user.user_id())
         new_taskboard.put()
+        new_taskboard_user_ref = MyUser.get_by_id(myuser_key.id())
+        new_taskboard_user_ref.td_key.append(new_taskboard.key)
+        new_taskboard_user_ref.td_name.append(taskboard_title)
+        new_taskboard_user_ref.td_creator_id.append(user.user_id())
+        new_taskboard_user_ref.put()
         self.redirect('/dashboard')
 
-        # taskboard_key = ndb.Key('TaskBoard', taskboard_title, parent=myuser_key)
-        # new_taskboard = taskboard_key
-
-        # if taskboard_title == TaskBoard.get_by_id(taskboard_key.id()):
-        #     self.response.write('Taskboard Exists')
-        # else:
-        #     self.response.write('New Taskboard')
-
-        # self.response.write(TaskBoard.get_by_id(myuser_key.id()))
-        # new_taskboard.put()
-        # self.redirect('/dashboard')
-
-        # self.response.write(new_taskboard.creator)
-        # self.response.write('<br/>')
-        # self.response.write(new_taskboard.name)
-
-        # self.response.write(taskboard_key)
-
-        # if user:
-        #     taskboard.name = taskboard_title
-        #     taskboard.put()
-        #     self.redirect('/dashboard')
-        # self.response.write(taskboard_title)

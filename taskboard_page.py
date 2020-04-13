@@ -14,7 +14,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True
 )
 
-DEFAULT_TASKBOARD_NAME = 'default_taskboard'
+
+# DEFAULT_TASKBOARD_NAME = 'default_taskboard'
 
 
 # We set a parent key on the 'Greetings' to ensure that they are all
@@ -22,12 +23,12 @@ DEFAULT_TASKBOARD_NAME = 'default_taskboard'
 # will be consistent. However, the write rate should be limited to
 # ~1/second.
 
-def taskboard_key(taskboard_name=DEFAULT_TASKBOARD_NAME):
-    """Constructs a Datastore key for a Guestbook entity.
-
-    We use guestbook_name as the key.
-    """
-    return ndb.Key('Taskboard', taskboard_name)
+# def taskboard_key(taskboard_name=DEFAULT_TASKBOARD_NAME):
+#     """Constructs a Datastore key for a Guestbook entity.
+#
+#     We use guestbook_name as the key.
+#     """
+#     return ndb.Key('Taskboard', taskboard_name)
 
 
 class TaskBoardPage(webapp2.RequestHandler):
@@ -39,11 +40,6 @@ class TaskBoardPage(webapp2.RequestHandler):
         login_status = ''
 
         user = users.get_current_user()
-
-        # taskboard_key = ndb.Key('TaskBoard', taskboard_title, parent=myuser_key)
-        # myuser_key = ndb.Key('MyUser', user.user_id())
-        # myuser = myuser_key.get()
-        # self.response.write(myuser_key)
 
         if user:
             welcome = 'Welcome back to the workspace, we missed You!'
@@ -60,9 +56,6 @@ class TaskBoardPage(webapp2.RequestHandler):
                                 email=user.email())
                 myuser.put()
 
-            all_taskboards = TaskBoard.query(ancestor=myuser_key).fetch()
-            all_taskboards_count = TaskBoard.query(ancestor=myuser_key).count()
-
 
         else:
             url = users.create_login_url(self.request.uri)
@@ -72,13 +65,13 @@ class TaskBoardPage(webapp2.RequestHandler):
         decrypted_idd = ndb.Key(urlsafe=idd)
         taskboard_url_id = decrypted_idd.id()
 
-        taskboard_details = ndb.Key('TaskBoard', taskboard_url_id).get()
-        taskboard_details2 = ndb.Key('TaskBoard', taskboard_url_id)
+        taskboard_ref = TaskBoard.get_by_id(taskboard_url_id, parent=decrypted_idd.parent())
+        # taskboard_keys = taskboard_ref.creator_name
+        # self.response.write(taskboard_keys)
 
-        taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
-        # self.response.write(TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key))
+        # SEARCH FOR USERS
+        user_search = MyUser.query().fetch()
 
-        query = TaskBoard.query(ancestor=myuser_key)
 
         template_values = {
             'url': url,
@@ -86,9 +79,9 @@ class TaskBoardPage(webapp2.RequestHandler):
             'welcome': welcome,
             'login_status': login_status,
             'user_email': user.email(),
-            'all_taskboards': all_taskboards,
-            'all_taskboards_count': all_taskboards_count,
-            'taskboard_info': taskboard_info
+            'user_search': user_search,
+            'idd': idd,
+            'taskboard_ref': taskboard_ref
         }
 
         template = JINJA_ENVIRONMENT.get_template('taskboard.html')
@@ -98,3 +91,23 @@ class TaskBoardPage(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
 
         user = users.get_current_user()
+        myuser_key = ndb.Key('MyUser', user.user_id())
+        myuser = myuser_key.get()
+
+        idd = self.request.get('id')
+        decrypted_idd = ndb.Key(urlsafe=idd)
+        taskboard_url_id = decrypted_idd.id()
+
+        taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
+        this_taskboard_info_key = taskboard_info.key
+
+        invitee_details = self.request.get('invitee_id')
+        invitee_id = MyUser.get_by_id(invitee_details)
+
+        invitee_id.td_key.append(taskboard_info.key)
+        invitee_id.td_name.append(taskboard_info.name)
+        invitee_id.td_creator_id.append(user.user_id())
+        invitee_id.put()
+        # self.response.write(taskboard_info.name)
+
+        self.redirect('/taskboard?id=' + str(idd))

@@ -64,6 +64,22 @@ body {
     margin-right: 20px;
 }
 
+.back-to-dashboard {
+    background: #f39c12;
+    color: #ffffff;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-weight: 600;
+    margin-right: 20px;
+    text-decoration: none;
+}
+
+.back-to-dashboard:hover {
+    color: #ecf0f1;
+    text-decoration: none;
+}
+
 .hero-image-style:before {
     content: '';
     position: absolute;
@@ -127,6 +143,11 @@ body {
     font-weight: 500;
 }
 
+.user_list {
+    text-decoration: none;
+    color: black;
+}
+
 .blue-background {
     background-color: #f39c12;
     color: white;
@@ -135,7 +156,7 @@ body {
 }
 
 .form-section-style {
-    margin: 50px 0;
+    margin: 20px 0;
 }
 
 .wrapper {
