@@ -14,32 +14,10 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True
 )
 
-DEFAULT_TASKBOARD_NAME = 'default_taskboard'
-
-
-# We set a parent key on the 'Greetings' to ensure that they are all
-# in the same entity group. Queries across the single entity group
-# will be consistent. However, the write rate should be limited to
-# ~1/second.
-
-def myuser_parent_key(taskboard_name=DEFAULT_TASKBOARD_NAME):
-    """Constructs a Datastore key for a Guestbook entity.
-
-    We use guestbook_name as the key.
-    """
-    return ndb.Key('MyUser', taskboard_name)
-
 
 class Dashboard(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
-
-        # taskboard_name = self.request.get('taskboard_name',
-        #                                   DEFAULT_TASKBOARD_NAME)
-        # taskboard_query = TaskBoard.query(
-        #     ancestor=taskboard_key(taskboard_name)).order(-TaskBoard.date)
-        #
-        # taskboards = taskboard_query.fetch()
 
         url = ''
         welcome = ''
@@ -115,7 +93,10 @@ class Dashboard(webapp2.RequestHandler):
         # Now we can put the message into Datastore
         new_taskboard = TaskBoard(key=new_taskboard_key, creator=myuser_key, creator_name=user.email(),
                                   name=taskboard_title, creator_id=user.user_id())
+        new_taskboard.members_id.append(myuser_key.id())
+        # new_taskboard.members.append(user.email())
         new_taskboard.put()
+
         new_taskboard_user_ref = MyUser.get_by_id(myuser_key.id())
         new_taskboard_user_ref.td_key.append(new_taskboard.key)
         new_taskboard_user_ref.td_name.append(taskboard_title)

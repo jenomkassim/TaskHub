@@ -1,4 +1,6 @@
+import logging
 import os
+from datetime import datetime
 
 import jinja2
 import webapp2
@@ -6,6 +8,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from myuser import MyUser
+from task import Task
 from taskboard import TaskBoard
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -15,22 +18,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 )
 
 
-# DEFAULT_TASKBOARD_NAME = 'default_taskboard'
-
-
-# We set a parent key on the 'Greetings' to ensure that they are all
-# in the same entity group. Queries across the single entity group
-# will be consistent. However, the write rate should be limited to
-# ~1/second.
-
-# def taskboard_key(taskboard_name=DEFAULT_TASKBOARD_NAME):
-#     """Constructs a Datastore key for a Guestbook entity.
-#
-#     We use guestbook_name as the key.
-#     """
-#     return ndb.Key('Taskboard', taskboard_name)
-
-
 class TaskBoardPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
@@ -38,6 +25,7 @@ class TaskBoardPage(webapp2.RequestHandler):
         url = ''
         welcome = ''
         login_status = ''
+        error_message = ''
 
         user = users.get_current_user()
 
@@ -67,11 +55,20 @@ class TaskBoardPage(webapp2.RequestHandler):
 
         taskboard_ref = TaskBoard.get_by_id(taskboard_url_id, parent=decrypted_idd.parent())
         # taskboard_keys = taskboard_ref.creator_name
-        # self.response.write(taskboard_keys)
+        # self.response.write(taskboard_ref.members)
 
         # SEARCH FOR USERS
         user_search = MyUser.query().fetch()
 
+        # DO NOT MEMBER USER ALREADY IN TASK BOARD
+        memberlist = []
+        # memberlist_key = []
+
+        for member in taskboard_ref.members_id:
+            deciphered_member_email = MyUser.get_by_id(member).email
+            memberlist.append(deciphered_member_email)
+
+        count = 0
 
         template_values = {
             'url': url,
@@ -81,7 +78,13 @@ class TaskBoardPage(webapp2.RequestHandler):
             'user_email': user.email(),
             'user_search': user_search,
             'idd': idd,
-            'taskboard_ref': taskboard_ref
+            'taskboard_ref': taskboard_ref,
+            'all_tasks': taskboard_ref.tasks,
+            'members': taskboard_ref.members_id,
+            'error_message': error_message,
+            'memberlist': memberlist,
+            'count': count,
+            'MyUser': MyUser
         }
 
         template = JINJA_ENVIRONMENT.get_template('taskboard.html')
@@ -96,18 +99,93 @@ class TaskBoardPage(webapp2.RequestHandler):
 
         idd = self.request.get('id')
         decrypted_idd = ndb.Key(urlsafe=idd)
+        logging.info(decrypted_idd)
         taskboard_url_id = decrypted_idd.id()
+        logging.info(taskboard_url_id)
 
-        taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
-        this_taskboard_info_key = taskboard_info.key
+        # GET CURRENT TASKBOARD DETAILS
+        taskboard_ref = TaskBoard.get_by_id(taskboard_url_id, parent=decrypted_idd.parent())
 
-        invitee_details = self.request.get('invitee_id')
-        invitee_id = MyUser.get_by_id(invitee_details)
+        action = self.request.get('button')
 
-        invitee_id.td_key.append(taskboard_info.key)
-        invitee_id.td_name.append(taskboard_info.name)
-        invitee_id.td_creator_id.append(user.user_id())
-        invitee_id.put()
-        # self.response.write(taskboard_info.name)
+        # INVITING A NEW USER
+        if action == 'Invite User':
+            taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
+            this_taskboard_info_key = taskboard_info.key
 
-        self.redirect('/taskboard?id=' + str(idd))
+            invitee_details = self.request.get('invitee_id')
+            invitee_id = MyUser.get_by_id(invitee_details)
+
+            invitee_id.td_key.append(this_taskboard_info_key)
+            invitee_id.td_name.append(taskboard_info.name)
+            invitee_id.td_creator_id.append(user.user_id())
+            invitee_id.put()
+            # self.response.write(invitee_id)
+
+            taskboard_ref.members_id.append(invitee_id.key.id())
+            # taskboard_ref.members.append(invitee_id.email)
+            taskboard_ref.put()
+
+            self.redirect('/taskboard?id=' + str(idd))
+
+        # CREATING A NEW TASK
+        if action == 'Create Task':
+            task_title = self.request.get('title')
+            assign_to = self.request.get('assign_to')
+            due_date = self.request.get('due_date')
+
+            due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
+
+            task_list = []
+            # memberlist = []
+
+            for each in taskboard_ref.tasks:
+                task_list.append(each.title)
+
+            # for member in taskboard_ref.members:
+            #     memberlist.append(member)
+
+            if task_title in task_list:
+                error_message = 'Task already exists'
+                self.redirect('/taskboard?id=' + str(idd))
+            else:
+                new_task = Task(
+                    title=task_title,
+                    due_date=due_date,
+                    assignee_id=assign_to,
+                    status=False
+                )
+
+                taskboard_ref.tasks.append(new_task)
+                taskboard_ref.put()
+                self.redirect('/taskboard?id=' + str(idd))
+                # self.response.write(taskboard_ref)
+
+        # ASSIGNING A TASK
+        if action == 'Assign Task':
+            edit_title = self.request.get('edit_title')
+            edit_assign_to = self.request.get('edit_assign_to')
+            edit_due_date = self.request.get('edit_due_date')
+            index = int(self.request.get('index'))
+
+            edit_due_date = datetime.strptime(edit_due_date, '%Y-%m-%d').date()
+
+            new_task = Task(
+                title=edit_title,
+                due_date=edit_due_date,
+                assignee_id=edit_assign_to,
+                status=False
+            )
+
+            taskboard_ref.tasks.pop(index)
+            taskboard_ref.tasks.insert(index, new_task)
+            taskboard_ref.put()
+            self.redirect('/taskboard?id=' + str(idd))
+
+        # DELETING A TASK
+        if action == 'Delete Task':
+            index = int(self.request.get('index'))
+
+            taskboard_ref.tasks.pop(index)
+            taskboard_ref.put()
+            self.redirect('/taskboard?id=' + str(idd))

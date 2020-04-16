@@ -21,7 +21,11 @@
         <div class="container">
             <div>
                 <h1>{{ taskboard_ref.name }}</h1>
-                <p style="color: #34495e;">Created by: {{ taskboard_ref.creator_name }}</p>
+                {% if taskboard_ref.creator_name == user_email %}
+                <p style="color: #f4f4f4;">Created by: {{ taskboard_ref.creator_name }} <b>(You)</b></p>
+                {% else %}
+                <p style="color: #f4f4f4;">Created by: {{ taskboard_ref.creator_name }}</p>
+                {% endif %}
             </div>
 
             <div>
@@ -38,28 +42,46 @@
             <div style="margin-top: 70px;">
                 <div class="row" style="width: 80%">
                     <div class="col">
-                        <h6>Invite Users To Collaborate With You</h6>
+                        <h6>Taskboard Members</h6>
                     </div>
+
+
                     <div class="col-1">
+                        {% if taskboard_ref.creator_name == user_email %}
                         <button class="btn btn-danger float-right rounded-circle font-weight-bold"
-                                data-target="#createTaskBoard" data-toggle="modal"
+                                data-target="#inviteUsers" data-toggle="modal"
                                 style=""> +
                         </button>
+                        {% endif %}
                     </div>
+
+
                 </div>
             </div>
 
             <div class="row " style="width: 80%">
 
-
-
-            </div>
-
-            <div class="mt-5">
-                <a class="btn login-button-dashboard" href="{{ url }}">{{ login_status }}</a>
+                <div class="col">
+                    <ol>
+                        {% for i in members %}
+                        {% if MyUser.get_by_id(i).email == taskboard_ref.creator_name %}
+                        <li> {{ MyUser.get_by_id(i).email }} <b>(Creator)</b></li>
+                        {% elif MyUser.get_by_id(i).email == user_email %}
+                        <li> {{ MyUser.get_by_id(i).email }} <b>(You)</b></li>
+                        {% else %}
+                        <li> {{ MyUser.get_by_id(i).email }}</li>
+                        {% endif %}
+                        {% endfor %}
+                    </ol>
+                </div>
             </div>
 
         </div>
+
+        <div class="mt-5">
+            <a class="btn login-button-dashboard" href="{{ url }}">{{ login_status }}</a>
+        </div>
+
     </div>
 
 
@@ -67,13 +89,80 @@
 
 <!--    Right Side-->
 <div class="shadow p-5" id="content">
-    <div>
-        <h2>Tasks</h2>
+    <div class="row">
+        <div class="col">
+            <h2>Tasks</h2>
+        </div>
+        <div class="col">
+            <button class="btn add-taskboard-button float-right font-weight-bold" data-target="#addTask"
+                    data-toggle="modal"
+                    style=""> Create New Task
+            </button>
+        </div>
         <hr>
     </div>
 
     <div class="mt-5">
-        <h5>Today</h5>
+
+        <form>
+
+            <!--            IF TASK IS NOT COMPLETED-->
+            {% for i in all_tasks %}
+            {% if i.status == False %}
+            <div class="custom-control custom-checkbox mb-3">
+                <input class="custom-control-input" id="task-{{ i }}" name="cbox" type="checkbox"
+                       value="{{ i.status }}">
+                <label class="custom-control-label" for="task-{{ i }}">{{ i.title }}</label>
+                <div class="row mt-1">
+                    <div class="col">
+                        <span class="task-info-title"><span class="text-danger">Due Date: </span><span
+                                class="task-info">{{ i.due_date }}</span></span>
+                    </div>
+                    <div class="col">
+                        {% set x = i.assignee_id|string() %}
+                        <span class="task-info-title">Assigned to: <span class="task-info">{{ MyUser.get_by_id(x).email }}</span></span>
+                    </div>
+                    <div class="col-2">
+                        <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                            <small>Edit Task</small>
+                        </a>
+                    </div>
+                </div>
+                <hr>
+            </div>
+
+            {% else %}
+            <!--            IF TASK IS COMPLETED-->
+            <div class="custom-control custom-checkbox mb-3">
+                <input checked class="custom-control-input" id="task-{{ i }}" name="completed_cbox" type="checkbox"
+                       value="{{ i.status }}">
+                <label class="custom-control-label" for="task-{{ i }}">{{ i.title }}</label>
+                <div class="row mt-1">
+                    <div class="col">
+                        <span class="task-info-title"><span class="text-success">Completed On: </span><span
+                                class="task-info">{{ i.due_date }}</span></span>
+                    </div>
+                    <div class="col">
+                        {% set x = i.assignee_id|string() %}
+                        <span class="task-info-title">Assigned to: <span class="task-info">{{ MyUser.get_by_id(x).email }}</span></span>
+                    </div>
+                    <div class="col-2">
+                        <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                            <small>Edit Task</small>
+                        </a>
+                    </div>
+                </div>
+                <hr>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+            <div class="mt-2">
+                <p class="lead text-danger" name="error_message">{{ error_message }}</p>
+            </div>
+
+            <button class="btn btn-primary d-none" type="submit">Submit</button>
+        </form>
 
 
     </div>
@@ -83,8 +172,8 @@
 </div>
 
 
-<!-- Create TaskBoard Button Modal -->
-<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg" id="createTaskBoard"
+<!-- Invite User Button Modal -->
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg" id="inviteUsers"
      role="dialog"
      tabindex="-1">
     <div class="modal-dialog modal-lg" role="document">
@@ -101,22 +190,34 @@
                 <section class="form-section-style">
                     <div class="container p-1 pl-3 pr-3 bg-white">
                         {% for i in user_search %}
+                        {% if i.email in memberlist %}
+                        {% else %}
                         <div class="row">
                             <div class="col p-2">
-                                <a class="user_list" href="">{{ i.email }}</a>
+                                <!--                                <a class="user_list" href="">{{ i.email }}</a>-->
                                 <form action="/taskboard?id={{ idd }}" method="post">
-                                    <input class="form-control" id="invitee_id" name="invitee_id" type="text"
+                                    <input class="form-control" id="invitee_id" name="invitee_id" type="hidden"
                                            value="{{ i.key.id() }}">
-                                    <input class="form-control" id="invitee_email" name="invitee_email" type="text"
-                                           value="{{ i.email }}">
-                                    <input class="form-control" id="index" name="index" type="text"
+                                    <input class="form-control" id="index" name="index" type="hidden"
                                            value="{{ loop.index - 1 }}">
-                                    <input class="form-control btn btn-primary" name="button" type="submit"
-                                           value="Submit">
+                                    <div class="row">
+                                        <div class="col">
+                                            <p class="lead">{{ i.email }}</p>
+                                        </div>
+
+                                        <div class="col">
+                                            <input class="btn add-taskboard-button float-right" name="button"
+                                                   type="submit"
+                                                   value="Invite User">
+                                        </div>
+                                    </div>
+
                                 </form>
                             </div>
                         </div>
+                        {% endif %}
                         {% endfor %}
+
                     </div>
 
                 </section>
@@ -126,6 +227,146 @@
     </div>
 </div>
 
+
+<!-- Add Task Modal -->
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg" id="addTask"
+     role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-body">
+
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h3 style="color: #1B62FB;">Add New Task</h3>
+
+                <!-- FORM FOR ADDING CAR TO THE DATABASE FOR THE ELECTRIC VEHICLES -->
+                <section class="form-section-style">
+
+                    <div class="container border p-4 bg-white">
+                        <form action="/taskboard?id={{ idd }}" method="post">
+                            <!-- TOP ROW OF FORM -->
+                            <div class="row">
+                                <div class="col form-group">
+                                    <label for="title">Title</label>
+                                    <input class="form-control" id="title" name="title" required
+                                           type="text">
+                                </div>
+
+                            </div>
+
+                            <!-- BOTTOM ROW OF FORM -->
+                            <div class="row">
+                                <div class="col form-group">
+                                    <label for="due_date">Due Date</label>
+                                    <input class="form-control" id="due_date" name="due_date" required
+                                           type="date">
+                                </div>
+                                <div class="col form-group">
+                                    <label for="assign_to">Assign To</label>
+                                    <select class="form-control" id="assign_to" name="assign_to">
+                                        <option selected value="None">Choose...</option>
+                                        {% for i in members %}
+                                        <option value="{{ MyUser.get_by_id(i).key.id() }}">{{ MyUser.get_by_id(i).email
+                                            }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col form-group">
+                                    <label>&nbsp;</label>
+                                    <input class="form-control btn add-taskboard-button" name="button" type="submit"
+                                           value="Create Task">
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </section>
+                <!-- END FORM FOR QUERYING DATABASE FOR THE ELECTRIC VEHICLES -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Assign User To Task Modal -->
+{% for i in all_tasks %}
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg"
+     id="assignUser{{ loop.index - 1 }}"
+     role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-body">
+
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h3 style="color: #1B62FB;">Assign Task To User</h3>
+
+                <!-- FORM FOR ADDING CAR TO THE DATABASE FOR THE ELECTRIC VEHICLES -->
+                <section class="form-section-style">
+
+                    <div class="container border p-4 bg-white">
+                        <form action="/taskboard?id={{ idd }}" method="post">
+                            <!-- TOP ROW OF FORM -->
+                            <div class="row">
+
+
+                                <div class="col form-group">
+                                    <label for="edit_title">Title</label>
+                                    <input class="form-control" id="edit_title" name="edit_title" readonly="readonly"
+                                           required type="text" value="{{ i.title }}">
+                                </div>
+
+                            </div>
+
+                            <!-- BOTTOM ROW OF FORM -->
+                            <div class="row">
+                                <div class="col form-group">
+                                    <label for="edit_due_date">Due Date</label>
+                                    <input class="form-control" id="edit_due_date" name="edit_due_date"
+                                           readonly="readonly"
+                                           required type="date" value="{{ i.due_date }}">
+                                </div>
+                                <div class="col form-group">
+                                    <label for="edit_assign_to">Assign To</label>
+                                    <select class="form-control" id="edit_assign_to" name="edit_assign_to">
+                                        <option selected value="None">Choose...</option>
+                                        {% for i in members %}
+                                        <option value="{{ i }}">{{ MyUser.get_by_id(i).email }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col form-group">
+                                    <input name="index" type="hidden" value="{{ loop.index - 1 }}"/>
+                                    <label>&nbsp;</label>
+                                    <input class="form-control btn add-taskboard-button" name="button" type="submit"
+                                           value="Assign Task">
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </section>
+                <!-- END FORM FOR QUERYING DATABASE FOR THE ELECTRIC VEHICLES -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <script src="js/jquery-3.4.1.min.js" type="text/javascript"></script>
 <script src="js/popper.min.js" type="text/javascript"></script>

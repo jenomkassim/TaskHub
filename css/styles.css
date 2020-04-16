@@ -28,7 +28,7 @@ body {
     color: #ffffff;
     width: 100px;
     font-weight: 600;
-    margin: 0 30px;
+    margin: 0 10px;
 }
 
 .logout-button {
@@ -191,4 +191,16 @@ body {
 
 #content.active {
     width: 100%;
+}
+
+.task-info-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: grey;
+}
+
+.task-info {
+    font-size: 15px;
+    font-weight: 300;
+    color: grey;
 }
