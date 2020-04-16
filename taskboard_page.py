@@ -189,3 +189,52 @@ class TaskBoardPage(webapp2.RequestHandler):
             taskboard_ref.tasks.pop(index)
             taskboard_ref.put()
             self.redirect('/taskboard?id=' + str(idd))
+
+        # HANDLE CHECKED BOK
+        if action == 'Mark As Completed':
+            title = self.request.get('check_title')
+            assigned_to = self.request.get('check_assigned_to')
+            due_date = self.request.get('check_due_date')
+            index = int(self.request.get('check_index'))
+
+            converted_due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
+
+            new_task = Task(
+                title=title,
+                assignee_id=assigned_to,
+                due_date=converted_due_date,
+                status=True
+            )
+
+            taskboard_ref.tasks.pop(index)
+            taskboard_ref.tasks.insert(index, new_task)
+            taskboard_ref.put()
+            self.redirect('/taskboard?id=' + str(idd))
+
+        # HANDLE UNCHECKING BOK
+        if action == 'Mark As Uncompleted':
+            title = self.request.get('uncheck_title')
+            assigned_to = self.request.get('uncheck_assigned_to')
+            due_date = self.request.get('uncheck_due_date')
+            index = int(self.request.get('uncheck_index'))
+
+            converted_due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
+
+            new_task = Task(
+                title=title,
+                assignee_id=assigned_to,
+                due_date=converted_due_date,
+                status=False
+            )
+
+            taskboard_ref.tasks.pop(index)
+            taskboard_ref.tasks.insert(index, new_task)
+            taskboard_ref.put()
+            self.redirect('/taskboard?id=' + str(idd))
+
+        if action == 'Delete Task':
+            index = int(self.request.get('index'))
+
+            taskboard_ref.tasks.pop(index)
+            taskboard_ref.put()
+            self.redirect('/taskboard?id=' + str(idd))

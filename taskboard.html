@@ -110,46 +110,68 @@
             {% for i in all_tasks %}
             {% if i.status == False %}
             <div class="custom-control custom-checkbox mb-3">
-                <input class="custom-control-input" id="task-{{ i }}" name="cbox" type="checkbox"
-                       value="{{ i.status }}">
-                <label class="custom-control-label" for="task-{{ i }}">{{ i.title }}</label>
+                <input class="custom-control-input" data-target="#taskCompleted{{ loop.index - 1 }}" data-toggle="modal"
+                       id="task-{{ loop.index - 1 }}" type="checkbox" value="{{ i.status }}">
+                <label class="custom-control-label" for="task-{{ loop.index - 1 }}">{{ i.title }}</label>
+
                 <div class="row mt-1">
                     <div class="col">
-                        <span class="task-info-title"><span class="text-danger">Due Date: </span><span
-                                class="task-info">{{ i.due_date }}</span></span>
+                            <span class="task-info-title"><span class="text-danger">Due Date: </span>
+                                <p
+                                        class="task-info">{{ i.due_date }}
+                                </p>
+                            </span>
                     </div>
                     <div class="col">
                         {% set x = i.assignee_id|string() %}
-                        <span class="task-info-title">Assigned to: <span class="task-info">{{ MyUser.get_by_id(x).email }}</span></span>
+                        <span class="task-info-title">Assigned to:
+                                <p class="task-info">{{ MyUser.get_by_id(x).email }}
+                                </p>
+                            </span>
                     </div>
                     <div class="col-2">
                         <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
                             <small>Edit Task</small>
                         </a>
+                        <p>
+                            <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                                <small class="text-danger">Delete Task</small>
+                            </a>
+                        </p>
                     </div>
-                </div>
-                <hr>
+                    </div>
+
+
             </div>
+                <hr>
+            <!--            </div>-->
 
             {% else %}
             <!--            IF TASK IS COMPLETED-->
             <div class="custom-control custom-checkbox mb-3">
-                <input checked class="custom-control-input" id="task-{{ i }}" name="completed_cbox" type="checkbox"
-                       value="{{ i.status }}">
+                <input checked class="custom-control-input" data-target="#taskUnCompleted{{ loop.index - 1 }}"
+                       data-toggle="modal"
+                       id="task-{{ i }}" type="checkbox" value="{{ i.status }}">
                 <label class="custom-control-label" for="task-{{ i }}">{{ i.title }}</label>
                 <div class="row mt-1">
                     <div class="col">
-                        <span class="task-info-title"><span class="text-success">Completed On: </span><span
-                                class="task-info">{{ i.due_date }}</span></span>
+                        <span class="task-info-title"><span class="text-success">Completed On: </span><p
+                                class="task-info">{{ i.completion_date }}</p></span>
                     </div>
                     <div class="col">
                         {% set x = i.assignee_id|string() %}
-                        <span class="task-info-title">Assigned to: <span class="task-info">{{ MyUser.get_by_id(x).email }}</span></span>
+                        <span class="task-info-title">Assigned to: <p
+                                class="task-info">{{ MyUser.get_by_id(x).email }}</p></span>
                     </div>
                     <div class="col-2">
                         <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
                             <small>Edit Task</small>
                         </a>
+                        <p>
+                            <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                                <small class="text-danger">Delete Task</small>
+                            </a>
+                        </p>
                     </div>
                 </div>
                 <hr>
@@ -310,7 +332,7 @@
                 <button aria-label="Close" class="close" data-dismiss="modal" type="button">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                <h3 style="color: #1B62FB;">Assign Task To User</h3>
+                <h3 style="color: #1B62FB;">Edit Task</h3>
 
                 <!-- FORM FOR ADDING CAR TO THE DATABASE FOR THE ELECTRIC VEHICLES -->
                 <section class="form-section-style">
@@ -323,7 +345,7 @@
 
                                 <div class="col form-group">
                                     <label for="edit_title">Title</label>
-                                    <input class="form-control" id="edit_title" name="edit_title" readonly="readonly"
+                                    <input class="form-control" id="edit_title" name="edit_title"
                                            required type="text" value="{{ i.title }}">
                                 </div>
 
@@ -334,11 +356,12 @@
                                 <div class="col form-group">
                                     <label for="edit_due_date">Due Date</label>
                                     <input class="form-control" id="edit_due_date" name="edit_due_date"
-                                           readonly="readonly"
                                            required type="date" value="{{ i.due_date }}">
                                 </div>
                                 <div class="col form-group">
-                                    <label for="edit_assign_to">Assign To</label>
+                                    <label for="edit_assign_to">Assign To
+                                        <small class="text-danger">(Select new user or reassign user again)</small>
+                                    </label>
                                     <select class="form-control" id="edit_assign_to" name="edit_assign_to">
                                         <option selected value="None">Choose...</option>
                                         {% for i in members %}
@@ -367,6 +390,139 @@
     </div>
 </div>
 {% endfor %}
+
+
+<!-- Mark Task as Completed -->
+{% for i in all_tasks %}
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg"
+     id="taskCompleted{{ loop.index - 1 }}"
+     role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-body">
+
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h3 style="color: #f39c12;">Mark Task As Completed</h3>
+                <p class="lead mt-3">Click the button below to mark as completed</p>
+
+                <form action="/taskboard?id={{ idd }}" method="post">
+                    <div class="row ">
+                        <div class="col form-group">
+                            <input class="form-control" name="check_title" required type="text" value="{{ i.title }}">
+                            <input class="form-control" name="check_assigned_to" required type="text"
+                                   value="{{ i.assignee_id }}">
+                            <input class="form-control" name="check_due_date" required type="text"
+                                   value="{{ i.due_date }}">
+                            <input class="form-control" name="check_index" required type="text"
+                                   value="{{ loop.index - 1 }}">
+
+                        </div>
+                    </div>
+                    <input class="form-control btn add-taskboard-button" name="button" type="submit"
+                           value="Mark As Completed">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+<!-- Mark Task as Uncompleted -->
+{% for i in all_tasks %}
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg"
+     id="taskUnCompleted{{ loop.index - 1 }}"
+     role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-body">
+
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h3 style="color: #f39c12;">Mark Task As Uncompleted</h3>
+                <p class="lead mt-3">Click the button below to mark as uncompleted</p>
+
+                <form action="/taskboard?id={{ idd }}" method="post">
+                    <div class="row">
+                        <div class="col form-group">
+                            <input class="form-control" name="uncheck_title" required type="text" value="{{ i.title }}">
+                            <input class="form-control" name="uncheck_assigned_to" required type="text"
+                                   value="{{ i.assignee_id }}">
+                            <input class="form-control" name="uncheck_due_date" required type="text"
+                                   value="{{ i.due_date }}">
+                            <input class="form-control" name="uncheck_index" required type="text"
+                                   value="{{ loop.index - 1 }}">
+
+                        </div>
+                    </div>
+                    <input class="form-control btn btn-danger" name="button" type="submit" value="Mark As Uncompleted">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Task -->
+{% for i in all_tasks %}
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade bd-example-modal-lg"
+     id="deleteUser{{ loop.index - 1 }}"
+     role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-body">
+
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h3 style="color: #1B62FB;">Delete Task</h3>
+
+                <!-- FORM FOR ADDING CAR TO THE DATABASE FOR THE ELECTRIC VEHICLES -->
+                <section class="form-section-style">
+
+                    <div class="container border p-4 bg-white">
+                        <form action="/taskboard?id={{ idd }}" method="post">
+                            <!-- TOP ROW OF FORM -->
+                            <div class="row">
+
+
+                                <div class="col form-group">
+                                    <label for="edit_title">Title</label>
+                                    <input class="form-control" name="edit_title" readonly="readonly"
+                                           required type="text" value="{{ i.title }}">
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+                                <div class="col form-group">
+                                    <input name="index" type="hidden" value="{{ loop.index - 1 }}"/>
+                                    <label>&nbsp;</label>
+                                    <input class="form-control btn btn-danger" name="button" type="submit"
+                                           value="Delete Task">
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </section>
+                <!-- END FORM FOR QUERYING DATABASE FOR THE ELECTRIC VEHICLES -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 
 <script src="js/jquery-3.4.1.min.js" type="text/javascript"></script>
 <script src="js/popper.min.js" type="text/javascript"></script>
