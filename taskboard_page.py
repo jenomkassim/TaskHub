@@ -161,8 +161,8 @@ class TaskBoardPage(webapp2.RequestHandler):
                 self.redirect('/taskboard?id=' + str(idd))
                 # self.response.write(taskboard_ref)
 
-        # ASSIGNING A TASK
-        if action == 'Assign Task':
+        # EDIT A TASK
+        if action == 'Edit Task':
             edit_title = self.request.get('edit_title')
             edit_assign_to = self.request.get('edit_assign_to')
             edit_due_date = self.request.get('edit_due_date')
@@ -186,7 +186,7 @@ class TaskBoardPage(webapp2.RequestHandler):
         if action == 'Delete Task':
             index = int(self.request.get('index'))
 
-            taskboard_ref.tasks.pop(index)
+            del taskboard_ref.tasks[index]
             taskboard_ref.put()
             self.redirect('/taskboard?id=' + str(idd))
 
@@ -232,9 +232,46 @@ class TaskBoardPage(webapp2.RequestHandler):
             taskboard_ref.put()
             self.redirect('/taskboard?id=' + str(idd))
 
-        if action == 'Delete Task':
-            index = int(self.request.get('index'))
+        # EDIT TASKBOARD
+        if action == 'Edit Taskboard':
+            name = self.request.get('taskboard_name')
 
-            taskboard_ref.tasks.pop(index)
+            taskboard_ref.name = name
             taskboard_ref.put()
             self.redirect('/taskboard?id=' + str(idd))
+
+        # REMOVE USER
+        if action == 'Remove User':
+            userID = self.request.get('user_id')
+            indexy = self.request.get('index')
+            invitee_details = MyUser.get_by_id(userID)
+
+            asigned_tasks = []
+
+            for assignees in taskboard_ref.tasks:
+                asigned_tasks.append(assignees.assignee_id)
+
+            for i, assignees in enumerate(taskboard_ref.tasks):
+                if assignees.assignee_id == userID:
+                    new_task = Task(
+                        title=assignees.title,
+                        due_date=assignees.due_date,
+                        assignee_id='None',
+                        status=assignees.status,
+                        completion_date=assignees.completion_date
+                    )
+                    del taskboard_ref.tasks[i]
+                    taskboard_ref.tasks.insert(i, new_task)
+                    taskboard_ref.put()
+                else:
+                    self.response.write('Nothing to remove')
+
+            self.redirect('/taskboard?id=' + str(idd))
+
+            # self.response.write(asigned_tasks)
+            # del taskboard_ref.tasks
+            # del taskboard_ref.members_id[indexy]
+            # taskboard_ref.put()
+            # #
+            # #
+            # self.redirect('/taskboard?id=' + str(idd))
