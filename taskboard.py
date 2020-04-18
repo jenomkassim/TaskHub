@@ -10,6 +10,7 @@ class TaskBoard(ndb.Model):
     creator_id = ndb.StringProperty()
     name = ndb.StringProperty()
     members_id = ndb.StringProperty(repeated=True)
+    assigned_to = ndb.StringProperty(repeated=True)
     # members = ndb.StringProperty(repeated=True)
     tasks = ndb.StructuredProperty(Task, repeated=True)
     date = ndb.DateTimeProperty(auto_now_add=True)

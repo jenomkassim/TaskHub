@@ -120,8 +120,19 @@
                     style=""> Create New Task
             </button>
         </div>
-        <hr>
+
     </div>
+    <div class="row mt-3">
+        <div class="col">
+            <p class="text-dark">
+                <b class="text-warning">Total: </b><span class="text-dark">{{ total_tasks }}</span>
+                <b class="text-danger pl-5">Active: </b><span class="text-dark">{{ active_tasks }}</span>
+                <b class="text-success pl-5">Completed: </b><span class="text-dark">{{ completed_tasks }}</span>
+                <b class="text-success pl-5">Completed Today: </b><span class="text-dark">Not Working Yet</span>
+            </p>
+        </div>
+    </div>
+    <hr>
 
     <div class="mt-5">
 
@@ -130,81 +141,86 @@
             <!--            IF TASK IS NOT COMPLETED-->
             {% for i in all_tasks %}
             {% if i.status == False %}
-            <div class="custom-control custom-checkbox mb-3">
-                <input class="custom-control-input" data-target="#taskCompleted{{ loop.index - 1 }}" data-toggle="modal"
-                       id="task-{{ loop.index - 1 }}" type="checkbox" value="{{ i.status }}">
-                <label class="custom-control-label" for="task-{{ loop.index - 1 }}">{{ i.title }}</label>
+            {% set x = i.assignee_id|string() %}
+            {% if i.assignee_id == 01|string() %}
+            <div class="custom-control custom-checkbox mb-3 border border-danger pl-3 pr-3 pt-1 pb-1">
+                {% else %}
+                <div class="custom-control custom-checkbox mb-3">
+                    {% endif%}
+                    <input class="custom-control-input" data-target="#taskCompleted{{ loop.index - 1 }}" data-toggle="modal"
+                           id="task-{{ loop.index - 1 }}" type="checkbox" value="{{ i.status }}">
+                    <label class="custom-control-label" for="task-{{ loop.index - 1 }}">{{ i.title }}</label>
 
-                <div class="row mt-1">
-                    <div class="col">
+                    <div class="row mt-1">
+                        <div class="col">
                             <span class="task-info-title"><span class="text-danger">Due Date: </span>
                                 <p
                                         class="task-info">{{ i.due_date }}
                                 </p>
                             </span>
-                    </div>
-                    <div class="col">
-                        {% set x = i.assignee_id|string() %}
+                        </div>
+                        <div class="col">
                         <span class="task-info-title">Assigned to:
                                 <p class="task-info">{{ MyUser.get_by_id(x).email }}
                                 </p>
                             </span>
-                    </div>
-                    <div class="col-2">
-                        <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
-                            <small>Edit Task</small>
-                        </a>
-                        <p>
-                            <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
-                                <small class="text-danger">Delete Task</small>
+                        </div>
+
+                        <div class="col-2">
+                            <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                                <small>Edit Task</small>
                             </a>
-                        </p>
-                    </div>
+                            <p>
+                                <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                                    <small class="text-danger">Delete Task</small>
+                                </a>
+                            </p>
+                        </div>
                     </div>
 
 
-            </div>
-                <hr>
-            <!--            </div>-->
-
-            {% else %}
-            <!--            IF TASK IS COMPLETED-->
-            <div class="custom-control custom-checkbox mb-3">
-                <input checked class="custom-control-input" data-target="#taskUnCompleted{{ loop.index - 1 }}"
-                       data-toggle="modal"
-                       id="task-{{ i }}" type="checkbox" value="{{ i.status }}">
-                <label class="custom-control-label" for="task-{{ i }}">{{ i.title }}</label>
-                <div class="row mt-1">
-                    <div class="col">
-                        <span class="task-info-title"><span class="text-success">Completed On: </span><p
-                                class="task-info">{{ i.completion_date }}</p></span>
-                    </div>
-                    <div class="col">
-                        {% set x = i.assignee_id|string() %}
-                        <span class="task-info-title">Assigned to: <p
-                                class="task-info">{{ MyUser.get_by_id(x).email }}</p></span>
-                    </div>
-                    <div class="col-2">
-                        <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
-                            <small>Edit Task</small>
-                        </a>
-                        <p>
-                            <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
-                                <small class="text-danger">Delete Task</small>
-                            </a>
-                        </p>
-                    </div>
                 </div>
                 <hr>
-            </div>
-            {% endif %}
-            {% endfor %}
+                <!--            </div>-->
 
-            <div class="mt-2">
-                <p class="lead text-danger" name="error_message">{{ error_message }}</p>
-            </div>
+                {% else %}
+                <!--            IF TASK IS COMPLETED-->
+                <div class="custom-control custom-checkbox mb-3">
+                    <input checked class="custom-control-input" data-target="#taskUnCompleted{{ loop.index - 1 }}"
+                           data-toggle="modal"
+                           id="task-{{ i }}" type="checkbox" value="{{ i.status }}">
+                    <label class="custom-control-label" for="task-{{ i }}">{{ i.title }}</label>
+                    <div class="row mt-1">
+                        <div class="col">
+                        <span class="task-info-title"><span class="text-success">Completed On: </span><p
+                                class="task-info">{{ i.completion_date }}</p></span>
+                        </div>
+                        <div class="col">
+                            {% set x = i.assignee_id|string() %}
+                            <span class="task-info-title">Assigned to: <p
+                                    class="task-info">{{ MyUser.get_by_id(x).email }}</p></span>
+                        </div>
+                        <div class="col-2">
+                            <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                                <small>Edit Task</small>
+                            </a>
+                            <p>
+                                <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
+                                    <small class="text-danger">Delete Task</small>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
+                </div>
+                {% endif %}
+                {% endfor %}
 
-            <button class="btn btn-primary d-none" type="submit">Submit</button>
+                <div class="mt-2">
+                    <p class="lead text-danger" name="error_message">{{ error_message }}</p>
+                </div>
+
+                <button class="btn btn-primary d-none" type="submit">Submit</button>
         </form>
 
 
@@ -310,7 +326,6 @@
                                 <div class="col form-group">
                                     <label for="assign_to">Assign To</label>
                                     <select class="form-control" id="assign_to" name="assign_to">
-                                        <option selected value="None">Choose...</option>
                                         {% for i in members %}
                                         <option value="{{ MyUser.get_by_id(i).key.id() }}">{{ MyUser.get_by_id(i).email
                                             }}
@@ -384,7 +399,6 @@
                                         <small class="text-danger">(Select new user or reassign user again)</small>
                                     </label>
                                     <select class="form-control" id="edit_assign_to" name="edit_assign_to">
-                                        <option selected value="None">Choose...</option>
                                         {% for i in members %}
                                         <option value="{{ i }}">{{ MyUser.get_by_id(i).email }}</option>
                                         {% endfor %}
@@ -575,7 +589,12 @@
                                 <div class="col form-group">
                                     <label></label>
                                     <input class="form-control btn add-taskboard-button" name="button" type="submit"
-                                           value="Edit Taskboard">
+                                           value="Rename Taskboard">
+                                </div>
+                                <div class="col form-group">
+                                    <label></label>
+                                    <input class="form-control btn btn-danger" name="button" type="submit"
+                                           value="Delete Taskboard">
                                 </div>
                             </div>
 

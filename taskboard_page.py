@@ -70,6 +70,22 @@ class TaskBoardPage(webapp2.RequestHandler):
 
         count = 0
 
+        # CALCULATE TOTAL NUMBER OF TASKS
+        total_tasks = 0
+        active_tasks = 0
+        completed_tasks = 0
+
+        for i in taskboard_ref.tasks:
+            total_tasks = total_tasks + 1
+
+        for i in taskboard_ref.tasks:
+            if i.status == False:
+                active_tasks = active_tasks + 1
+
+        for i in taskboard_ref.tasks:
+            if i.status == True:
+                completed_tasks = completed_tasks + 1
+
         template_values = {
             'url': url,
             'user': user,
@@ -84,7 +100,10 @@ class TaskBoardPage(webapp2.RequestHandler):
             'error_message': error_message,
             'memberlist': memberlist,
             'count': count,
-            'MyUser': MyUser
+            'MyUser': MyUser,
+            'total_tasks': total_tasks,
+            'active_tasks': active_tasks,
+            'completed_tasks': completed_tasks
         }
 
         template = JINJA_ENVIRONMENT.get_template('taskboard.html')
@@ -99,12 +118,12 @@ class TaskBoardPage(webapp2.RequestHandler):
 
         idd = self.request.get('id')
         decrypted_idd = ndb.Key(urlsafe=idd)
-        logging.info(decrypted_idd)
         taskboard_url_id = decrypted_idd.id()
         logging.info(taskboard_url_id)
 
         # GET CURRENT TASKBOARD DETAILS
         taskboard_ref = TaskBoard.get_by_id(taskboard_url_id, parent=decrypted_idd.parent())
+
 
         action = self.request.get('button')
 
@@ -232,8 +251,8 @@ class TaskBoardPage(webapp2.RequestHandler):
             taskboard_ref.put()
             self.redirect('/taskboard?id=' + str(idd))
 
-        # EDIT TASKBOARD
-        if action == 'Edit Taskboard':
+        # RENAME TASKBOARD
+        if action == 'Rename Taskboard':
             name = self.request.get('taskboard_name')
 
             taskboard_ref.name = name
@@ -242,8 +261,11 @@ class TaskBoardPage(webapp2.RequestHandler):
 
         # REMOVE USER
         if action == 'Remove User':
+            taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
+            this_taskboard_info_key = taskboard_info.key
+
             userID = self.request.get('user_id')
-            indexy = self.request.get('index')
+            indexy = int(self.request.get('index'))
             invitee_details = MyUser.get_by_id(userID)
 
             asigned_tasks = []
@@ -251,27 +273,32 @@ class TaskBoardPage(webapp2.RequestHandler):
             for assignees in taskboard_ref.tasks:
                 asigned_tasks.append(assignees.assignee_id)
 
-            for i, assignees in enumerate(taskboard_ref.tasks):
+            for i, assignees in enumerate(TaskBoard.get_by_id(taskboard_url_id, parent=decrypted_idd.parent()).tasks):
                 if assignees.assignee_id == userID:
-                    new_task = Task(
-                        title=assignees.title,
-                        due_date=assignees.due_date,
-                        assignee_id='None',
-                        status=assignees.status,
-                        completion_date=assignees.completion_date
-                    )
-                    del taskboard_ref.tasks[i]
-                    taskboard_ref.tasks.insert(i, new_task)
-                    taskboard_ref.put()
+                    position = i
+
+                    taskboard_ref.tasks[i].assignee_id = str(01)
+
                 else:
                     self.response.write('Nothing to remove')
 
+            # self.response.write(asigned_tasks)
+            taskboard_ref.put()
+            # DELETE MEMBER FROM TASKBOARD MEMBER LIST
+            del taskboard_ref.members_id[indexy]
+            taskboard_ref.put()
+
+            # DELETE TASKBOARD FROM USER'S TASKBOARDS
+
+            invitee_details.td_key.remove(this_taskboard_info_key)
+            # invitee_details.td_name.remove(taskboard_info.name)
+            invitee_details.td_creator_id.remove(user.user_id())
+            invitee_details.put()
+
             self.redirect('/taskboard?id=' + str(idd))
 
-            # self.response.write(asigned_tasks)
-            # del taskboard_ref.tasks
-            # del taskboard_ref.members_id[indexy]
-            # taskboard_ref.put()
-            # #
-            # #
-            # self.redirect('/taskboard?id=' + str(idd))
+        # DELETE TASKBOARD
+        if action == 'Delete Taskboard':
+            taskboard_ref.name = name
+            taskboard_ref.put()
+            self.redirect('/taskboard?id=' + str(idd))
