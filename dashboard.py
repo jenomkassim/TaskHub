@@ -99,7 +99,7 @@ class Dashboard(webapp2.RequestHandler):
 
         new_taskboard_user_ref = MyUser.get_by_id(myuser_key.id())
         new_taskboard_user_ref.td_key.append(new_taskboard.key)
-        new_taskboard_user_ref.td_name.append(taskboard_title)
+        # new_taskboard_user_ref.td_name.append(taskboard_title)
         new_taskboard_user_ref.td_creator_id.append(user.user_id())
         new_taskboard_user_ref.put()
         self.redirect('/dashboard')

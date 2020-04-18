@@ -136,7 +136,7 @@ class TaskBoardPage(webapp2.RequestHandler):
             invitee_id = MyUser.get_by_id(invitee_details)
 
             invitee_id.td_key.append(this_taskboard_info_key)
-            invitee_id.td_name.append(taskboard_info.name)
+            # invitee_id.td_name.append(taskboard_info.name)
             invitee_id.td_creator_id.append(user.user_id())
             invitee_id.put()
             # self.response.write(invitee_id)
@@ -268,17 +268,10 @@ class TaskBoardPage(webapp2.RequestHandler):
             indexy = int(self.request.get('index'))
             invitee_details = MyUser.get_by_id(userID)
 
-            asigned_tasks = []
-
-            for assignees in taskboard_ref.tasks:
-                asigned_tasks.append(assignees.assignee_id)
 
             for i, assignees in enumerate(TaskBoard.get_by_id(taskboard_url_id, parent=decrypted_idd.parent()).tasks):
                 if assignees.assignee_id == userID:
-                    position = i
-
                     taskboard_ref.tasks[i].assignee_id = str(01)
-
                 else:
                     self.response.write('Nothing to remove')
 
@@ -299,6 +292,19 @@ class TaskBoardPage(webapp2.RequestHandler):
 
         # DELETE TASKBOARD
         if action == 'Delete Taskboard':
-            taskboard_ref.name = name
-            taskboard_ref.put()
-            self.redirect('/taskboard?id=' + str(idd))
+            taskboard_info = TaskBoard.get_by_id(taskboard_url_id, parent=myuser_key)
+            this_taskboard_info_key = taskboard_info.key
+
+            member_list = []
+
+            for m in taskboard_ref.members_id:
+                member_list.append(m)
+
+            for i, members in enumerate(member_list):
+                invitee_details = MyUser.get_by_id(members)
+                invitee_details.td_key.remove(this_taskboard_info_key)
+                invitee_details.td_creator_id.remove(user.user_id())
+                invitee_details.put()
+
+            taskboard_ref.key.delete()
+            self.redirect('/dashboard')
