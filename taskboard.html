@@ -48,7 +48,7 @@
             <div style="margin-top: 70px;">
                 <div class="row mb-3" style="width: 90%">
                     <div class="col">
-                        <h6>Taskboard Members</h6>
+                        <h6>Taskboard Members ({{ member_count }})</h6>
                     </div>
 
 
@@ -133,7 +133,6 @@
         </div>
     </div>
     <hr>
-
     <div class="mt-5">
 
         <form>
@@ -141,15 +140,19 @@
             <!--            IF TASK IS NOT COMPLETED-->
             {% for i in all_tasks %}
             {% if i.status == False %}
-            {% set x = i.assignee_id|string() %}
             {% if i.assignee_id == 01|string() %}
             <div class="custom-control custom-checkbox mb-3 border border-danger pl-3 pr-3 pt-1 pb-1">
+                <input class="custom-control-input" data-target="#taskCompleted{{ loop.index - 1 }}" data-toggle="modal"
+                       disabled id="task-{{ loop.index - 1 }}" type="checkbox" value="{{ i.status }}">
+                <label class="custom-control-label" for="task-{{ loop.index - 1 }}">{{ i.title }}</label>
                 {% else %}
                 <div class="custom-control custom-checkbox mb-3">
-                    {% endif%}
-                    <input class="custom-control-input" data-target="#taskCompleted{{ loop.index - 1 }}" data-toggle="modal"
+                    <input class="custom-control-input" data-target="#taskCompleted{{ loop.index - 1 }}"
+                           data-toggle="modal"
                            id="task-{{ loop.index - 1 }}" type="checkbox" value="{{ i.status }}">
                     <label class="custom-control-label" for="task-{{ loop.index - 1 }}">{{ i.title }}</label>
+                    {% endif%}
+
 
                     <div class="row mt-1">
                         <div class="col">
@@ -160,6 +163,7 @@
                             </span>
                         </div>
                         <div class="col">
+                            {% set x = i.assignee_id|string() %}
                         <span class="task-info-title">Assigned to:
                                 <p class="task-info">{{ MyUser.get_by_id(x).email }}
                                 </p>
@@ -201,8 +205,7 @@
                                     class="task-info">{{ MyUser.get_by_id(x).email }}</p></span>
                         </div>
                         <div class="col-2">
-                            <a data-target="#assignUser{{ loop.index - 1 }}" data-toggle="modal" href="">
-                                <small>Edit Task</small>
+
                             </a>
                             <p>
                                 <a data-target="#deleteUser{{ loop.index - 1 }}" data-toggle="modal" href="">
@@ -216,11 +219,19 @@
                 {% endif %}
                 {% endfor %}
 
+                {% if error_message %}
                 <div class="mt-2">
-                    <p class="lead text-danger" name="error_message">{{ error_message }}</p>
+                    <p class="lead text-danger">Task already exists</p>
                 </div>
+                {% else %}
+                <div class="mt-2">
+                    <p class="lead text-danger"></p>
+                </div>
+                {% endif %}
+
 
                 <button class="btn btn-primary d-none" type="submit">Submit</button>
+            </div>
         </form>
 
 
@@ -393,6 +404,8 @@
                                     <label for="edit_due_date">Due Date</label>
                                     <input class="form-control" id="edit_due_date" name="edit_due_date"
                                            required type="date" value="{{ i.due_date }}">
+                                    <input class="form-control d-none" id="edit_old_id" name="edit_old_id"
+                                           required type="text" value="{{ i.assignee_id }}">
                                 </div>
                                 <div class="col form-group">
                                     <label for="edit_assign_to">Assign To
@@ -591,11 +604,22 @@
                                     <input class="form-control btn add-taskboard-button" name="button" type="submit"
                                            value="Rename Taskboard">
                                 </div>
+                                {% if show_delete_button %}
                                 <div class="col form-group">
                                     <label></label>
                                     <input class="form-control btn btn-danger" name="button" type="submit"
                                            value="Delete Taskboard">
                                 </div>
+                                {% else %}
+                                <div class="col form-group">
+                                    <label></label>
+                                    <input class="form-control btn btn-danger" disabled name="button"
+                                           type="submit" value="Delete Taskboard">
+                                    <small class="text-danger text-center">Cannot delete till all members and tasks have
+                                        been removed
+                                    </small>
+                                </div>
+                                {% endif %}
                             </div>
 
                         </form>

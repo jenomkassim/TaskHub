@@ -7,8 +7,6 @@ from google.appengine.api import users
 from dashboard import Dashboard
 from taskboard_page import TaskBoardPage
 
-# from taskboard import TaskBoard
-
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],

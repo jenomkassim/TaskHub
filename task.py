@@ -7,4 +7,3 @@ class Task(ndb.Model):
     completion_date = ndb.DateTimeProperty(auto_now_add=True)
     status = ndb.BooleanProperty()
     assignee_id = ndb.StringProperty()
-    taskCreationDate = ndb.DateTimeProperty(auto_now_add=True)

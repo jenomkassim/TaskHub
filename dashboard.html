@@ -16,14 +16,13 @@
     <div class="mx-auto" id="sidebar" style="padding-left: 8%; padding-top: 7%">
         <div class="container">
             <div>
-                <h1>Hi {{ user_email }}</h1>
+                <h1>Hi, {{ user_email }}</h1>
                 <p>{{ welcome }}</p>
             </div>
 
 
             <div class="row mt-5">
                 <div class="col" style="margin-left: -50px;">
-                    <!--                    <img src="img/undraw_team_goals_hrii%20(1).png" alt="" class="img-fluid">-->
                     <svg data-name="Layer 1" height="300" id="ae17259d-43ff-416a-850d-3ae84d603a75"
                          viewBox="0 0 1151.5635 842.24197" width="550" xmlns="http://www.w3.org/2000/svg"><title>
                         sunlight</title>
@@ -210,9 +209,9 @@
         <hr>
     </div>
 
-    <div class="mt-5">
+    <div>
 
-        <h6>My Created Task Boards</h6>
+        <!--        <h6>My Created Task Boards</h6>-->
         <div class="row " style="width: 100%">
             {% for i in taskboard_user_keys %}
 
