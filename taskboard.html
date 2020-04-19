@@ -65,7 +65,8 @@
                 </div>
             </div>
 
-            <div class="row " style="width: 90%">
+            <div class="row overflow-auto text-dark pt-4 rounded"
+                 style="width: 90%; height: 300px; background-color: rgba(255, 255, 255, 0.3)">
 
                 <div class="col">
                     <ol>
@@ -128,7 +129,7 @@
                 <b class="text-warning">Total: </b><span class="text-dark">{{ total_tasks }}</span>
                 <b class="text-danger pl-5">Active: </b><span class="text-dark">{{ active_tasks }}</span>
                 <b class="text-success pl-5">Completed: </b><span class="text-dark">{{ completed_tasks }}</span>
-                <b class="text-success pl-5">Completed Today: </b><span class="text-dark">Not Working Yet</span>
+                <b class="text-success pl-5">Completed Today: </b><span class="text-dark">{{ completed_tasks }}</span>
             </p>
         </div>
     </div>
